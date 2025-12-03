@@ -162,10 +162,15 @@ class RewardsCfg:
         func=mdp.rewards.heading_deviation_l2, weight=-1.0,
         params={"threshold_deg": 30.0, "clamp": 1.0, "command_name": "base_velocity"}
     )
-
+    wheel_lateral_drag_l2 = RewTerm(
+        func=mdp.rewards.wheel_lateral_drag_l2, weight=-5.0,
+        params={"contact_force_threshold": 1.0, "lateral_velocity_threshold": 0.01, "debug": False, },
+    )
+    
     # -- custom rewards
     alternating_leg_lift = RewTerm(func=mdp.rewards.alternating_leg_lift, weight=2.0, params={"velocity_threshold": 0.1})
-    foot_clearance_exp = RewTerm(func=mdp.rewards.foot_clearance_exp, weight=3.0, params={"target_height": 0.25, "std": 0.05})
+    foot_clearance_exp = RewTerm(func=mdp.rewards.foot_clearance_exp, weight=3.0, params={"target_height": 0.15, "std": 0.05})
+
 
     alive = RewTerm(func=mdp.is_alive, weight=1.0)
 
