@@ -65,9 +65,9 @@ class CommandsCfg:
         asset_name="robot",
         resampling_time_range=(10.0, 10.0),
         rel_standing_envs=0.02,
-        heading_command=False,
+        heading_command=True,
         debug_vis=True,
-        ranges=mdp.UniformVelocityCommandCfg.Ranges(lin_vel_x=(0.0, 1.0), lin_vel_y=(0.0, 0.0), ang_vel_z=(-1.0, 1.0)),
+        ranges=mdp.UniformVelocityCommandCfg.Ranges(lin_vel_x=(0.0, 1.0), lin_vel_y=(0.0, 0.0), ang_vel_z=(-0.0, 0.0), heading=(-0.0, 0.0)),
     )
 
 
@@ -113,7 +113,7 @@ class EventCfg:
         func=mdp.reset_root_state_uniform,
         mode="reset",
         params={
-            "pose_range": {"x": (0.0, 0.0), "y": (0.0, 0.0), "yaw": (0.0, 0.0)},
+            "pose_range": {"x": (0.0, 0.0), "y": (0.0, 0.0), "z": (-0.12, -0.12), "yaw": (0.0, 0.0)},
             "velocity_range": {
                 "x": (0.0, 0.0),
                 "y": (0.0, 0.0),
@@ -144,17 +144,28 @@ class RewardsCfg:
         func=mdp.track_lin_vel_xy_exp, weight=2.0, params={"command_name": "base_velocity", "std": math.sqrt(0.125)}
     )
     track_ang_vel_z_exp = RewTerm(
-        func=mdp.track_ang_vel_z_exp, weight=0.5, params={"command_name": "base_velocity", "std": math.sqrt(0.125)}
+        func=mdp.track_ang_vel_z_exp, weight=0.0, params={"command_name": "base_velocity", "std": math.sqrt(0.125)}
     )
     # -- penalties
-    lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-1.0)
-    ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.05)
+    lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-0.1)
+    ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.01)
     dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-1.0e-5)
     dof_acc_l2 = RewTerm(func=mdp.joint_acc_l2, weight=-1.0e-7)
     action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-0.01)
     # -- optional penalties
-    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=0.0)
+    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-0.05)
     dof_pos_limits = RewTerm(func=mdp.joint_pos_limits, weight=0.0)
+
+    # -- custom penalties
+    hip_roll_penalty_l2 = RewTerm(func=mdp.rewards.two_joint_min_abduction_l2, weight=-0.05)
+    heading_deviation_l2 = RewTerm(
+        func=mdp.rewards.heading_deviation_l2, weight=-1.0,
+        params={"threshold_deg": 30.0, "clamp": 1.0, "command_name": "base_velocity"}
+    )
+
+    # -- custom rewards
+    alternating_leg_lift = RewTerm(func=mdp.rewards.alternating_leg_lift, weight=2.0, params={"velocity_threshold": 0.1})
+    foot_clearance_exp = RewTerm(func=mdp.rewards.foot_clearance_exp, weight=3.0, params={"target_height": 0.25, "std": 0.05})
 
     alive = RewTerm(func=mdp.is_alive, weight=1.0)
 
