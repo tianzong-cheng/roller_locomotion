@@ -149,28 +149,35 @@ class RewardsCfg:
     # -- penalties
     lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-0.1)
     ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.01)
-    dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-1.0e-5)
+    dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-5.0e-5)
     dof_acc_l2 = RewTerm(func=mdp.joint_acc_l2, weight=-1.0e-7)
     action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-0.01)
     # -- optional penalties
-    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-0.05)
+    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-2.0)
     dof_pos_limits = RewTerm(func=mdp.joint_pos_limits, weight=0.0)
 
+    foot_contacts = RewTerm(
+        func=mdp.undesired_contacts, weight=-1.0,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["left_foot", "right_foot"]),
+            "threshold": 0.5,
+        }
+    )
+
     # -- custom penalties
-    hip_roll_penalty_l2 = RewTerm(func=mdp.rewards.two_joint_min_abduction_l2, weight=-0.05)
+    hip_roll_penalty_l2 = RewTerm(func=mdp.rewards.two_joint_min_abduction_l2, weight=-2.0)
     heading_deviation_l2 = RewTerm(
-        func=mdp.rewards.heading_deviation_l2, weight=-1.0,
-        params={"threshold_deg": 30.0, "clamp": 1.0, "command_name": "base_velocity"}
+        func=mdp.rewards.heading_deviation_l2, weight=-2.0,
+        params={"threshold_deg": 20.0, "clamp": 2.0, "command_name": "base_velocity"}
     )
     wheel_lateral_drag_l2 = RewTerm(
         func=mdp.rewards.wheel_lateral_drag_l2, weight=-5.0,
         params={"contact_force_threshold": 1.0, "lateral_velocity_threshold": 0.01, "debug": False, },
     )
-    
-    # -- custom rewards
-    alternating_leg_lift = RewTerm(func=mdp.rewards.alternating_leg_lift, weight=2.0, params={"velocity_threshold": 0.1})
-    foot_clearance_exp = RewTerm(func=mdp.rewards.foot_clearance_exp, weight=3.0, params={"target_height": 0.15, "std": 0.05})
 
+    # -- custom rewards
+    alternating_leg_lift = RewTerm(func=mdp.rewards.alternating_leg_lift, weight=1.0, params={"clearance_threshold": 0.05})
+    foot_clearance_exp = RewTerm(func=mdp.rewards.foot_clearance_exp, weight=1.0, params={"target_height": 0.15, "std": 0.05})
 
     alive = RewTerm(func=mdp.is_alive, weight=1.0)
 
