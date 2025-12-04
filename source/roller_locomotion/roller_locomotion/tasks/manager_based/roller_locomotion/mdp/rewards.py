@@ -106,27 +106,58 @@ def foot_clearance_exp(
 def alternating_leg_lift(
     env: ManagerBasedRLEnv,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
-    foot_body_names: list = ["left_foot", "right_foot"],
-    velocity_threshold: float = 0.3
+    left_wheel_body_names: list = ["left_wheel_1", "left_wheel_4"],
+    right_wheel_body_names: list = ["right_wheel_1", "right_wheel_4"],
+    clearance_threshold: float = 0.05
 ) -> torch.Tensor:
-    """奖励交替抬腿动作，模拟人类行走/滑行的腿部运动"""
-    # TODO: validation and threshold tuning
+    """奖励单腿腾空状态，鼓励交替抬腿动作
 
+    当一条腿的所有轮子都离地，而另一条腿至少有一个轮子着地时给予奖励
+
+    Args:
+        env: 环境实例
+        asset_cfg: 场景实体配置
+        left_wheel_body_names: 左脚轮子的body名称列表
+        right_wheel_body_names: 右脚轮子的body名称列表
+        clearance_threshold: 判定离地的高度阈值(米)
+
+    Returns:
+        每个环境的奖励值
+    """
     asset: Articulation = env.scene[asset_cfg.name]
 
-    # 获取左右脚的垂直速度
-    left_foot_vel = asset.data.body_vel_w[:, asset.body_names.index(foot_body_names[0]), 2]
-    right_foot_vel = asset.data.body_vel_w[:, asset.body_names.index(foot_body_names[1]), 2]
+    # 获取左脚所有轮子的高度
+    left_wheel_heights = []
+    for wheel_name in left_wheel_body_names:
+        wheel_idx = asset.body_names.index(wheel_name)
+        wheel_height = asset.data.body_pos_w[:, wheel_idx, 2]
+        left_wheel_heights.append(wheel_height)
 
-    # 检测一只脚抬起（正速度）而另一只脚放下（负速度或静止）
-    # 使用速度的乘积：当一个为正一个为负时，乘积为负，取绝对值
-    alternating_motion = torch.abs(left_foot_vel * right_foot_vel)
+    left_wheel_heights = torch.stack(left_wheel_heights, dim=1)  # [num_envs, num_wheels]
 
-    # 只有当至少一只脚有足够的垂直速度时才奖励
-    has_motion = (torch.abs(left_foot_vel) > velocity_threshold) | \
-                 (torch.abs(right_foot_vel) > velocity_threshold)
+    # 获取右脚所有轮子的高度
+    right_wheel_heights = []
+    for wheel_name in right_wheel_body_names:
+        wheel_idx = asset.body_names.index(wheel_name)
+        wheel_height = asset.data.body_pos_w[:, wheel_idx, 2]
+        right_wheel_heights.append(wheel_height)
 
-    reward = alternating_motion * has_motion.float()
+    right_wheel_heights = torch.stack(right_wheel_heights, dim=1)  # [num_envs, num_wheels]
+
+    # 判断每只脚是否完全腾空（所有轮子都离地）
+    left_airborne = torch.all(left_wheel_heights > clearance_threshold, dim=1)  # [num_envs]
+    right_airborne = torch.all(right_wheel_heights > clearance_threshold, dim=1)  # [num_envs]
+
+    # 判断每只脚是否着地（至少有一个轮子接触地面）
+    left_grounded = torch.any(left_wheel_heights <= clearance_threshold, dim=1)  # [num_envs]
+    right_grounded = torch.any(right_wheel_heights <= clearance_threshold, dim=1)  # [num_envs]
+
+    # 奖励条件：一条腿腾空 且 另一条腿着地
+    left_lift_right_ground = left_airborne & right_grounded
+    right_lift_left_ground = right_airborne & left_grounded
+
+    # 组合奖励（满足任一条件即可）
+    reward = (left_lift_right_ground | right_lift_left_ground).float()
 
     return reward
 
