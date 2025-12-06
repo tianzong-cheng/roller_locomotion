@@ -67,7 +67,7 @@ class CommandsCfg:
         rel_standing_envs=0.02,
         heading_command=True,
         debug_vis=True,
-        ranges=mdp.UniformVelocityCommandCfg.Ranges(lin_vel_x=(0.0, 1.0), lin_vel_y=(0.0, 0.0), ang_vel_z=(-0.0, 0.0), heading=(-0.0, 0.0)),
+        ranges=mdp.UniformVelocityCommandCfg.Ranges(lin_vel_x=(0.0, 2.0), lin_vel_y=(0.0, 0.0), ang_vel_z=(-0.0, 0.0), heading=(-0.0, 0.0)),
     )
 
 
@@ -149,35 +149,31 @@ class RewardsCfg:
     # -- penalties
     lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-0.1)
     ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.01)
-    dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-1.0e-5)
-    dof_acc_l2 = RewTerm(func=mdp.joint_acc_l2, weight=-1.0e-7)
+    dof_torques_l2 = RewTerm(func=mdp.rewards.joint_torques_filtered_l2, weight=-1.0e-4)
+    dof_acc_l2 = RewTerm(func=mdp.rewards.joint_acc_filtered_l2, weight=-1.0e-7)
     action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-0.01)
     # -- optional penalties
-    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-5.0)
+    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-1.0)
     dof_pos_limits = RewTerm(func=mdp.joint_pos_limits, weight=0.0)
 
-    foot_contacts = RewTerm(
-        func=mdp.undesired_contacts, weight=-1.0,
-        params={
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["left_foot", "right_foot"]),
-            "threshold": 0.5,
-        }
-    )
+    base_height_l2 = RewTerm(func=mdp.base_height_l2, weight=-5.0, params={"target_height": 0.5})
 
     # -- custom penalties
-    hip_roll_penalty_l2 = RewTerm(func=mdp.rewards.two_joint_min_abduction_l2, weight=-1.0)
+    hip_roll_penalty_l2 = RewTerm(func=mdp.rewards.two_joint_min_abduction_l2, weight=-0.3)
+
     heading_deviation_l2 = RewTerm(
         func=mdp.rewards.heading_deviation_l2, weight=-2.0,
         params={"threshold_deg": 20.0, "clamp": 2.0, "command_name": "base_velocity"}
     )
     wheel_lateral_drag_l2 = RewTerm(
-        func=mdp.rewards.wheel_lateral_drag_l2, weight=-5.0,
+        func=mdp.rewards.wheel_lateral_drag_l2, weight=-1.0,
         params={"contact_force_threshold": 1.0, "lateral_velocity_threshold": 0.01, "debug": False, },
     )
 
     # -- custom rewards
-    alternating_leg_lift = RewTerm(func=mdp.rewards.alternating_leg_lift, weight=1.0, params={"clearance_threshold": 0.05})
+    alternating_leg_lift = RewTerm(func=mdp.rewards.alternating_leg_lift, weight=0.5, params={"clearance_threshold": 0.05})
     # foot_clearance_exp = RewTerm(func=mdp.rewards.foot_clearance_exp, weight=0.0, params={"target_height": 0.05, "std": 0.05})
+    # knee_deviation_l1 = RewTerm(func=mdp.rewards.joint_deviation_l1, weight=1.0)
 
     alive = RewTerm(func=mdp.is_alive, weight=1.0)
 
@@ -193,9 +189,17 @@ class TerminationsCfg:
         params={"minimum_height": 0.3},
     )
 
-    base_contact = DoneTerm(
+    shank_contact = DoneTerm(
         func=mdp.illegal_contact,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_shank"), "threshold": 1.0},
+    )
+
+    foot_contact = DoneTerm(
+        func=mdp.illegal_contact,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
+            "threshold": 0.5,
+        }
     )
 
 

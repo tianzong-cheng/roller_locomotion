@@ -8,8 +8,8 @@
   <link name="base_link">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="30.0"/>
-      <inertia ixx="0.12500000000000003" ixy="0" ixz="0" iyy="0.4250000000000001" iyz="0" izz="0.5000000000000001"/>
+      <mass value="6.0"/>
+      <inertia ixx="0.025000000000000005" ixy="0" ixz="0" iyy="0.08500000000000002" iyz="0" izz="0.10000000000000002"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -32,7 +32,7 @@
     <origin xyz="0 0.15 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <!-- Restrict hip pitch to ±1.2 rad (≈±69°) -->
-    <limit effort="100" velocity="3.0" lower="-1.2" upper="1.2"/>
+    <limit effort="50" velocity="3.0" lower="-1.2" upper="1.2"/>
   </joint>
   <!-- Hip roll (second) -->
   <link name="left_hip_roll_link"/>
@@ -41,7 +41,7 @@
     <child link="left_hip_roll_link"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
-    <limit effort="100" velocity="3.0" lower="-0.7854" upper="0.7854"/>
+    <limit effort="50" velocity="3.0" lower="-0.7854" upper="0.7854"/>
   </joint>
   <!-- Hip yaw (third) -->
   <joint name="left_hip_yaw_joint" type="revolute">
@@ -49,14 +49,14 @@
     <child link="left_thigh"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="100" velocity="3.0" lower="-1.0" upper="1.0"/>
+    <limit effort="50" velocity="3.0" lower="-1.0" upper="1.0"/>
   </joint>
   <!-- Thigh -->
   <link name="left_thigh">
     <inertial>
       <origin xyz="0 0 -0.20" rpy="0 0 0"/>
-      <mass value="6.0"/>
-      <inertia ixx="0.08320000000000001" ixy="0" ixz="0" iyy="0.08320000000000001" iyz="0" izz="0.0064"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.013866666666666668" ixy="0" ixz="0" iyy="0.013866666666666668" iyz="0" izz="0.0010666666666666667"/>
     </inertial>
     <visual>
       <origin xyz="0 0 -0.20" rpy="0 0 0"/>
@@ -73,8 +73,8 @@
   <link name="left_shank">
     <inertial>
       <origin xyz="0 0 -0.155" rpy="0 0 0"/>
-      <mass value="3.0"/>
-      <inertia ixx="0.02525" ixy="0" ixz="0" iyy="0.02525" iyz="0" izz="0.0024500000000000004"/>
+      <mass value="0.8"/>
+      <inertia ixx="0.006733333333333333" ixy="0" ixz="0" iyy="0.006733333333333333" iyz="0" izz="0.0006533333333333335"/>
     </inertial>
     <visual>
       <origin xyz="0 0 -0.155" rpy="0 0 0"/>
@@ -92,14 +92,14 @@
     <child link="left_shank"/>
     <origin xyz="0 0 -0.42" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" velocity="3.0" lower="0" upper="2.0"/>
+    <limit effort="50" velocity="3.0" lower="0" upper="2.0"/>
   </joint>
   <!-- Foot -->
   <link name="left_foot">
     <inertial>
       <origin xyz="0 0 -0.02" rpy="0 0 0"/>
-      <mass value="1.0"/>
-      <inertia ixx="0.00034166666666666666" ixy="0" ixz="0" iyy="0.006666666666666668" iyz="0" izz="0.0067416666666666675"/>
+      <mass value="0.7"/>
+      <inertia ixx="0.00023916666666666666" ixy="0" ixz="0" iyy="0.004666666666666667" iyz="0" izz="0.004719166666666667"/>
     </inertial>
     <visual>
       <origin xyz="0 0 -0.02" rpy="0 0 0"/>
@@ -116,7 +116,7 @@
     <child link="left_foot"/>
     <origin xyz="0 0 -0.32" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" velocity="3.0" lower="-0.5236" upper="0.5236"/>
+    <limit effort="50" velocity="3.0" lower="-0.5236" upper="0.5236"/>
   </joint>
   <!-- Foot roll frame -->
   <link name="left_foot_roll_link"/>
@@ -227,7 +227,7 @@
     <child link="right_hip_pitch_link"/>
     <origin xyz="0 -0.15 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" velocity="3.0" lower="-1.2" upper="1.2"/>
+    <limit effort="50" velocity="3.0" lower="-1.2" upper="1.2"/>
   </joint>
   <!-- Hip roll (second) -->
   <link name="right_hip_roll_link"/>
@@ -236,7 +236,7 @@
     <child link="right_hip_roll_link"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
-    <limit effort="100" velocity="3.0" lower="-0.7854" upper="0.7854"/>
+    <limit effort="50" velocity="3.0" lower="-0.7854" upper="0.7854"/>
   </joint>
   <!-- Hip yaw (third) -->
   <joint name="right_hip_yaw_joint" type="revolute">
@@ -244,13 +244,13 @@
     <child link="right_thigh"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="100" velocity="3.0" lower="-1.0" upper="1.0"/>
+    <limit effort="50" velocity="3.0" lower="-1.0" upper="1.0"/>
   </joint>
   <link name="right_thigh">
     <inertial>
       <origin xyz="0 0 -0.20" rpy="0 0 0"/>
-      <mass value="6.0"/>
-      <inertia ixx="0.08320000000000001" ixy="0" ixz="0" iyy="0.08320000000000001" iyz="0" izz="0.0064"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.013866666666666668" ixy="0" ixz="0" iyy="0.013866666666666668" iyz="0" izz="0.0010666666666666667"/>
     </inertial>
     <visual>
       <origin xyz="0 0 -0.20" rpy="0 0 0"/>
@@ -267,8 +267,8 @@
   <link name="right_shank">
     <inertial>
       <origin xyz="0 0 -0.155" rpy="0 0 0"/>
-      <mass value="3.0"/>
-      <inertia ixx="0.02525" ixy="0" ixz="0" iyy="0.02525" iyz="0" izz="0.0024500000000000004"/>
+      <mass value="0.8"/>
+      <inertia ixx="0.006733333333333333" ixy="0" ixz="0" iyy="0.006733333333333333" iyz="0" izz="0.0006533333333333335"/>
     </inertial>
     <visual>
       <origin xyz="0 0 -0.155" rpy="0 0 0"/>
@@ -286,13 +286,13 @@
     <child link="right_shank"/>
     <origin xyz="0 0 -0.42" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" velocity="3.0" lower="0" upper="2.0"/>
+    <limit effort="50" velocity="3.0" lower="0" upper="2.0"/>
   </joint>
   <link name="right_foot">
     <inertial>
       <origin xyz="0 0 -0.02" rpy="0 0 0"/>
-      <mass value="1.0"/>
-      <inertia ixx="0.00034166666666666666" ixy="0" ixz="0" iyy="0.006666666666666668" iyz="0" izz="0.0067416666666666675"/>
+      <mass value="0.7"/>
+      <inertia ixx="0.00023916666666666666" ixy="0" ixz="0" iyy="0.004666666666666667" iyz="0" izz="0.004719166666666667"/>
     </inertial>
     <visual>
       <origin xyz="0 0 -0.02" rpy="0 0 0"/>
@@ -309,7 +309,7 @@
     <child link="right_foot"/>
     <origin xyz="0 0 -0.32" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" velocity="3.0" lower="-0.5236" upper="0.5236"/>
+    <limit effort="50" velocity="3.0" lower="-0.5236" upper="0.5236"/>
   </joint>
   <link name="right_foot_roll_link"/>
   <joint name="right_ankle_roll_joint" type="fixed">

@@ -32,7 +32,7 @@ ROLLER_SKATE_CFG = ArticulationCfg(
     actuators={
         "body": ImplicitActuatorCfg(
             joint_names_expr=[".*"],
-            effort_limit={".*": 20.0},
+            effort_limit={".*": 30.0},
             stiffness={
                 ".*_hip.*": 10.0,
                 ".*_knee_joint": 10.0,
@@ -43,7 +43,7 @@ ROLLER_SKATE_CFG = ArticulationCfg(
                 ".*_hip.*": 1.0,
                 ".*_knee_joint": 1.0,
                 ".*_ankle.*": 1.0,
-                ".*_wheel.*": 1e-4,
+                ".*_wheel.*": 1e-3,
             },
             velocity_limit_sim={".*": 100.0},
         ),
