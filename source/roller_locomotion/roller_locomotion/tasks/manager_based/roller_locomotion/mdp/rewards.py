@@ -108,7 +108,7 @@ def alternating_leg_lift(
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     left_wheel_body_names: list = ["left_wheel_1", "left_wheel_4"],
     right_wheel_body_names: list = ["right_wheel_1", "right_wheel_4"],
-    clearance_threshold: float = 0.05
+    clearance_threshold: float = 1e-3
 ) -> torch.Tensor:
     """奖励单腿腾空状态，鼓励交替抬腿动作
 
@@ -318,3 +318,83 @@ def wheel_lateral_drag_l2(
             print(f"Wheel {wheel_name} lateral drag penalty: {lateral_drag[0]:.4f} (Lat Vel: {lateral_velocity[0]:.4f} m/s, Contact Force: {contact_force[0]:.2f} N)")
 
     return total_penalty
+
+
+def joint_acc_filtered_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+                          filtered_out: list = ["left_wheel_joint_1", "right_wheel_joint_1", "left_wheel_joint_2", "right_wheel_joint_2",
+                                                "left_wheel_joint_3", "right_wheel_joint_3", "left_wheel_joint_4", "right_wheel_joint_4"],
+                          ) -> torch.Tensor:
+    """Penalize joint accelerations on the articulation using L2 squared kernel.
+
+    NOTE: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their joint accelerations contribute to the term.
+    Joints in filtered_out list will be excluded from the penalty.
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+
+    # get all joint names
+    joint_names = asset.data.joint_names
+
+    # create a mask for joints that should NOT be filtered out
+    filtered_joint_ids = []
+
+    for idx, joint_name in enumerate(joint_names):
+        if joint_name not in filtered_out:
+            filtered_joint_ids.append(idx)
+
+    # convert to tensor if needed
+    filtered_joint_ids = torch.tensor(filtered_joint_ids, dtype=torch.long, device=asset.device)
+
+    # calculate L2 squared penalty only for non-filtered joints
+    return torch.sum(torch.square(asset.data.joint_acc[:, filtered_joint_ids]), dim=1)
+
+
+def joint_torques_filtered_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+                              filtered_out: list = ["left_wheel_joint_1", "right_wheel_joint_1", "left_wheel_joint_2", "right_wheel_joint_2",
+                                                    "left_wheel_joint_3", "right_wheel_joint_3", "left_wheel_joint_4", "right_wheel_joint_4"],
+                              ) -> torch.Tensor:
+    """Penalize joint torques applied on the articulation using L2 squared kernel.
+
+    NOTE: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their joint torques contribute to the term.
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+
+    # get all joint names
+    joint_names = asset.data.joint_names
+
+    # create a mask for joints that should NOT be filtered out
+    filtered_joint_ids = []
+
+    for idx, joint_name in enumerate(joint_names):
+        if joint_name not in filtered_out:
+            filtered_joint_ids.append(idx)
+
+    filtered_joint_ids = torch.tensor(filtered_joint_ids, dtype=torch.long, device=asset.device)
+
+    return torch.sum(torch.square(asset.data.applied_torque[:, filtered_joint_ids]), dim=1)
+
+
+def joint_deviation_l1(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    joint_names: list = ["left_knee_joint", "right_knee_joint"],
+) -> torch.Tensor:
+    """Reward joint positions that deviate from the default one (encourages knee bending)."""
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+
+    # get all joint names
+    all_joint_names = asset.data.joint_names
+
+    # find indices of specified joints
+    joint_ids = [i for i, name in enumerate(all_joint_names) if name in joint_names]
+
+    if len(joint_ids) == 0:
+        return torch.zeros(env.num_envs, device=asset.device)
+
+    # compute deviation from default positions
+    angle = asset.data.joint_pos[:, joint_ids] - asset.data.default_joint_pos[:, joint_ids]
+
+    # return L1 norm as reward (larger deviation = larger reward)
+    return torch.sum(torch.abs(angle), dim=1)
